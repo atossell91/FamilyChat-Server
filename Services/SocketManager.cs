@@ -11,9 +11,35 @@ public class SocketManager
         sockets = new();
     }
 
+    void HandleConnection(MessagePacket packet, SocketWrapper socket)
+    {
+        if (!sockets.ContainsKey(packet.Name))
+        {
+            sockets.Add(packet.Name, socket);
+        }
+    }
+
+    void HandleChatMessage(MessagePacket packet)
+    {
+        
+    }
+
     void HandleMessage(object Sender, SocketWrapper.MessagedReceivedEventArgs e)
     {
-        Console.WriteLine(e.Message);
+        var packet = e.MessagePacket;
+        SocketWrapper socket = (SocketWrapper)Sender;
+        switch (packet.Type)
+        {
+            case MessageType.Connection:
+                HandleConnection(packet, socket);
+                break;
+            case MessageType.Chat:
+                HandleChatMessage(packet);
+                break;
+            default:
+                Console.WriteLine($"Message Type not recognized: {packet.Type}");
+                break;
+        }
     }
 
     public async Task ManageSocket(WebSocket socket)

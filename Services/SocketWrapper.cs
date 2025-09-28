@@ -8,7 +8,7 @@ public class SocketWrapper
 {
     public class MessagedReceivedEventArgs : EventArgs
     {
-        public string Message { get; set; }
+        public MessagePacket MessagePacket { get; set; }
     }
     public delegate void MessageReceived(Object sender, MessagedReceivedEventArgs e);
     public event MessageReceived? OnMessageReceived;
@@ -20,7 +20,7 @@ public class SocketWrapper
         _socket = socket;
     }
 
-    public async Task Listen()
+    public async Task HandleMessage()
     {
         byte[] buffer = new byte[500];
         var rcvResult = await _socket.ReceiveAsync(
@@ -28,20 +28,26 @@ public class SocketWrapper
             CancellationToken.None
         );
 
-        while (!rcvResult.CloseStatus.HasValue && _socket.State == WebSocketState.Open)
-        {
-            rcvResult = await _socket.ReceiveAsync(
-                new ArraySegment<byte>(buffer),
-                CancellationToken.None
-            );
+        if (rcvResult.CloseStatus.HasValue) return;
 
-            // Decode the message
-            string msg = Encoding.UTF8.GetString(buffer);
-            OnMessageReceived?.Invoke(this, new MessagedReceivedEventArgs()
-            {
-                Message = msg
-            });
-        }
+        // Decode the message
+        string msg = Encoding.UTF8.GetString(buffer, 0, rcvResult.Count);
+        var opts = new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        var resp = JsonSerializer.Deserialize<MessagePacket>(msg, opts);
+        OnMessageReceived?.Invoke(this, new MessagedReceivedEventArgs()
+        {
+            MessagePacket = resp
+        });
+    }
+
+    public async Task Listen()
+    {
+        do {
+            await HandleMessage();
+        } while (_socket.State == WebSocketState.Open);
     }
 
     public async Task Send(string message)
