@@ -1,0 +1,6 @@
+@FamilyChat_Server_HostAddress = http://localhost:5178
+
+GET {{FamilyChat_Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
