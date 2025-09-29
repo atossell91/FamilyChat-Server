@@ -11,6 +11,6 @@ public class MessagePacket
 {
     public string? Name { get; set; }
     public string? Message { get; set; }
-    public string? Target { get; set; }
+    public string[]? Target { get; set; }
     public MessageType Type { get; set; } = MessageType.None;
 }

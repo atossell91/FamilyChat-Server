@@ -1,5 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Threading.Tasks;
 
 namespace FamilyChat_Server;
 
@@ -19,14 +20,23 @@ public class SocketManager
         }
     }
 
-    void HandleChatMessage(MessagePacket packet)
+    async Task HandleChatMessage(MessagePacket packet)
     {
-        
+        Console.WriteLine($"Name {packet.Name}");
+        foreach (string user in packet.Target)
+        {
+            if (sockets.ContainsKey(user))
+            {
+                Console.WriteLine($"Sending to {user}");
+                await sockets[user].Send(packet);
+            }
+        }
     }
 
     void HandleMessage(object Sender, SocketWrapper.MessagedReceivedEventArgs e)
     {
         var packet = e.MessagePacket;
+        Console.WriteLine($"Type: {packet.Type}, Message: {packet.Message}");
         SocketWrapper socket = (SocketWrapper)Sender;
         switch (packet.Type)
         {

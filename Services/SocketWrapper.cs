@@ -50,8 +50,9 @@ public class SocketWrapper
         } while (_socket.State == WebSocketState.Open);
     }
 
-    public async Task Send(string message)
+    public async Task Send(MessagePacket packet)
     {
+        string message = JsonSerializer.Serialize<MessagePacket>(packet);
         await _socket.SendAsync(
             new ArraySegment<byte>(Encoding.UTF8.GetBytes(message)),
             WebSocketMessageType.Text,
